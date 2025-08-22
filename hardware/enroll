@@ -1,0 +1,171 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <Adafruit_Fingerprint.h>
+#include <LiquidCrystal_I2C.h>
+#include <HardwareSerial.h>
+#include <time.h>
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+HardwareSerial mySerial(2);
+Adafruit_Fingerprint finger(&mySerial);
+
+const char* ssid = "Silver Blaze";
+const char* password = "Guddu@123";
+const String scriptURL = "https://script.google.com/macros/s/AKfycbw5MlgKpxpPOwf3TOsz6R6-zieWYd5o77HBhavz134It8i___ufxdxhsO8qmk8uCDb4/exec";
+
+const char* ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = 6 * 3600;
+const int daylightOffset_sec = 0;
+
+String name_sir[7] = {"Aristotle", "Socrates", "H.Kabir", "Sanjeeb", "Heem", "Hridoy", "Nusrat"};
+bool attendanceMode = false;
+int teacherID = 121;
+uint8_t id;
+
+void updatelcd(const String &line1, const String &line2 = "", const String &line3 = "", const String &line4 = "");
+
+void setup() {
+  Serial.begin(9600);
+  mySerial.begin(57600, SERIAL_8N1, 16, 17);
+  lcd.init(); lcd.backlight();
+  updatelcd("LCD ","","Initialized","");
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) { delay(500); }
+
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+  finger.begin(57600);
+ if (!finger.verifyPassword()) {
+    updatelcd("FP Sensor ERROR!", "Check wiring.","","");
+    while (true) {
+      delay(1000);  // ✅ Keeps the watchdog happy
+    }
+}
+
+
+  pinMode(25, OUTPUT);
+  pinMode(12, OUTPUT);
+  showMenu();
+}
+
+void loop() {
+  if (Serial.available()) {
+    char option = Serial.read();
+    switch (option) {
+      case '1': enrollFingerprint(); break;
+      case '2': getFingerprintIDez(); break;
+      case '3': deleteFingerprintPrompt(); break;
+      case '4': listStoredFingerprints(); break;
+      case '0': showMenu(); break;
+      default: Serial.println("⚠️ Invalid option. Enter 0 to see the menu."); break;
+    }
+  }
+  delay(1000);
+}
+
+void showMenu() {
+  Serial.println("\n========== Fingerprint System Menu ==========");
+  Serial.println("1. Enroll new fingerprint");
+  Serial.println("2. Identify fingerprint");
+  Serial.println("3. Delete fingerprint by ID");
+  Serial.println("4. List all stored fingerprints");
+  Serial.println("0. Show menu again");
+  Serial.println("=============================================");
+  Serial.println("Enter your choice:");
+}
+
+void enrollFingerprint() {
+  Serial.println("Enter ID (1–127) to assign to this fingerprint:");
+  delay(3000);
+  id = readNumber();
+  if (id < 1 || id > 127) {
+    Serial.println("⚠️ Invalid ID.");
+    return;
+  }
+  while (!getFingerprintEnroll());
+}
+
+uint8_t getFingerprintEnroll() {
+  int p = -1;
+  Serial.print("Place finger for ID #"); Serial.println(id);
+  delay(3000);
+  while ((p = finger.getImage()) != FINGERPRINT_OK);
+  if (finger.image2Tz(1) != FINGERPRINT_OK) return -1;
+  Serial.println("Remove finger"); delay(2000);
+  while (finger.getImage() != FINGERPRINT_NOFINGER);
+  Serial.println("Place same finger again");
+  delay(3000);
+  while ((p = finger.getImage()) != FINGERPRINT_OK);
+  if (finger.image2Tz(2) != FINGERPRINT_OK) return -1;
+  if (finger.createModel() != FINGERPRINT_OK) {
+    Serial.println("Fingerprints did not match. Try again.");
+    return -1;
+  }
+  if (finger.storeModel(id) == FINGERPRINT_OK) {
+    Serial.println("✅ Fingerprint stored!");
+    digitalWrite(12, HIGH); delay(2000); digitalWrite(12, LOW);
+  } else {
+    Serial.println("❌ Error storing fingerprint.");
+  }
+  return true;
+}
+
+int getFingerprintIDez() {
+  if (finger.getImage() != FINGERPRINT_OK) return -1;
+  if (finger.image2Tz() != FINGERPRINT_OK) return -1;
+  if (finger.fingerFastSearch() != FINGERPRINT_OK) {
+    Serial.println("❌ No match found.");
+    digitalWrite(11, HIGH); delay(2000); digitalWrite(11, LOW);
+    return -1;
+  }
+  Serial.print("✅ Match found! ID: ");
+  Serial.print(finger.fingerID);
+  Serial.print(" | Confidence: ");
+  Serial.println(finger.confidence);
+  digitalWrite(12, HIGH); delay(2000); digitalWrite(12, LOW);
+  return finger.fingerID;
+}
+
+void deleteFingerprintPrompt() {
+  Serial.println("Enter ID (1–127) to delete:");
+  delay(3000);
+  uint8_t delID = readNumber();
+  if (delID < 1 || delID > 127) {
+    Serial.println("⚠️ Invalid ID.");
+    return;
+  }
+  uint8_t result = finger.deleteModel(delID);
+  if (result == FINGERPRINT_OK) {
+    Serial.println("🗑️ Fingerprint deleted successfully.");
+  } else {
+    Serial.print("❌ Delete failed. Error: 0x");
+    Serial.println(result, HEX);
+  }
+}
+
+void listStoredFingerprints() {
+  bool found = false;
+  for (uint8_t i = 1; i < 128; i++) {
+    if (finger.loadModel(i) == FINGERPRINT_OK) {
+      Serial.print("🟢 ID "); Serial.print(i); Serial.println(" is stored.");
+      found = true;
+    }
+  }
+  if (!found) Serial.println("🟡 No fingerprints currently stored.");
+}
+
+int readNumber() {
+  while (!Serial.available()) {
+    // Wait for user input
+  }
+  return Serial.parseInt();  // Reads the integer from serial
+}
+
+void updatelcd(const String &line1, const String &line2, const String &line3, const String &line4) {
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(line1.substring(0, 20));
+  if (line2.length() > 0) { lcd.setCursor(0, 1); lcd.print(line2.substring(0, 20)); }
+  if (line3.length() > 0) { lcd.setCursor(0, 2); lcd.print(line3.substring(0, 20)); }
+  if (line4.length() > 0) { lcd.setCursor(0, 3); lcd.print(line4.substring(0, 20)); }
+}
