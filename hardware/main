@@ -1,5 +1,4 @@
 //Final Code - 8-8-25-2-20
-//Made by PRattay Laha
 
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -32,6 +31,9 @@ const char* password = "Guddu@123";
 #define PROJECT_ID "AIzaSyBC0wE-JadFC1eM137eKHiIcLfqC3lPLS0"
 #define CLIENT_EMAIL "fingerprint-792@oceanic-hold-468115-k5.iam.gserviceaccount.com"
 const char PRIVATE_KEY[] PROGMEM = "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCXvqqAcomta20K\nPCkCt3yljOrjar7vPNDWbAQhFlHLCQqhlXqkdbmCqbXM4j+Dfta4+X80Y3u096YX\nfjx55Pteoxd6GFZJ8L65xF1OEEo1E1W42IZFV6AEBwJcWNTTM3XXD3IQ5jwtXukI\n/YVsdzM3l01hS0VTo98q5fqOUsbpL1CgfZXO+Y9bm2tjf16luRh7wvKzhEboQZYG\nej8ao6k2NA+FXUNtWasv47dv7h0t+iipjqqaYDAMsFpxjWukS/JzVtfVqGeSM6jc\ngDU9rQHBGZ7YsAkB8FkCG5oKybIpfxVECecH4vgE/2z3f9ouJJXiJlXJGYNBQhF1\nnx6lUT+fAgMBAAECggEADZu8CnquTYuZqUMEG7bDamaGg0n451dcYSzDSAmKentY\n/tNH2HgOrW2bz+ZzjLU/+2TnAZZxKyVq00BVmxbfOVL5Kx1qOGvrJsy54DAGZgq4\nWgETaL33EmiW6RvPf95/ETM7TWtGw69EL2a3Y8B8d6rnD4EirZTZUccMuJCRPxGF\nI3buJENA2+F3taIupAsdJBD3pMTHQHLQEmLZ3FXdIrrQPwQ5U1XsrCN81fhGTMkE\nitjzf1mIdKlO+LkXPe6gnufj9sAD95NXDHx4e8N1TN+bpm4sdnoDqho8QAomDHO1\nHCMYykOHctzXya5sr/8BCCRt6qleVSC8mV1UjT1D7QKBgQDJVErnY3lrgg+H9SuP\n2cQJbbbrDY4HU8Hn+lxQpcmPcwdV+ah/wyRUDd/JF9VKEc2X6pL1QEoHIzjZEkVx\nn8yVfAb+H4Y5KKQjPQ7BIgiA2TIM7jXzyzMQzlSB2d+14Va86MF3xNDsfKJOigod\n6XD2v5KuH3CWu80/oGvWQO6WCwKBgQDA828FacENfqC9YRCDQQPzp11IDPuisZ0z\nw6h9a9NnG4q2yqXbbV18pEsAG9N8pnxLyrNRgVSZYKH8R/iK4TwZd9GhjjNzeRfI\nFOLdhREwiEhZY8mgsg9lCnfGLqhkk2IXQy6tjQIkRg1joE3OxUmxcLLdmI413Qr8\nriDHZNDdPQKBgB2/yuGuHT75lPnuDGXRM9qAz8qj0hzbD4gLwqBYHxSHVsopffCD\nEVcqRasdTnMHdm3AR77dpRKw7bGFtaU4i657CT17wwWnL7nVR9zZ/o+riG3ItUg0\n+nK9Sld1rkzd40c+zXe5KXYIZKNeWmhZGkwburzoAGcFkSqZtdWO+rJJAoGAHYto\n3YhS8jEIhdb+A0sKQt3Gr8ilI0VVD98Oxp2jEi+qbtDa0p2Nag9yGIMqP/TyJVzV\nVk6aWJ3uT8XpbcKNRE0PgVBX2n+ZP57LGiZM+oRzp5RbBEsfhlYy/tqYGEZlB7DW\nzeZAhLNhS3b5UwbsgMoD6WB5rg+5pfU3ubBbNvUCgYAcjbybYmJZ5nwrSnTG1zUA\njaDTiixzSLMI83OhSB1qOvs5pECIDtwX5TFKe5E7nyt/KmIAFi7us7e/Uv063QUf\nypva7KSGxKTrAtmKrOrQKZWJ3bfC199ml+UL7nPCqnEONBy9Cqy4ucwpN5W++Kl5\nKOLDbvU2jfmtMrg40vGonQ==\n-----END PRIVATE KEY-----\n";
+const char* sheetName = "Today";
+
+
 // NTP settings
 const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 6 * 3600; // GMT+6 for Bangladesh
@@ -50,20 +52,20 @@ void tokenStatusCallback(TokenInfo info) {
 }
 
 // Global variables - Teachers
-String name_sir[7] = {"Aristotle", "Socrates", "H.Kabir", "Sanjeeb", "Heem", "Hridoy", "Nusrat"};
+String name_sir[7] = {"Naimur", "Safal", "H.Kabir", "Sanjeeb", "Heem", "Hridoy", "Nusrat"};
 
 // Student database - JSON formatted dataset
 const char* studentDatabase = R"({
-  "1": "Baker Bhai",
-  "2": "Himu",
+  "1": "Fawaz Suraim",
+  "2": "Ratul Islam",
   "3": "Tasnim Ahmed",
   "4": "Raihan Khan",
   "5": "Nafisa Sultana",
   "6": "Mahmud Hasan",
-  "7": "Ronaldo",
+  "7": "Fatema Khatun",
   "8": "Shakib Al Hasan",
-  "9": "PC Mitter",
-  "10": "L Messi",
+  "9": "Prattay Laha",
+  "10": "MI Sakif",
   "11": "Sabrina Akter",
   "12": "Tanvir Hossain",
   "13": "Rubaiya Chowdhury",
@@ -426,8 +428,12 @@ String sendAttendanceToSheet(int id) {
     Serial.println("Sending attendance to Google Sheet...");
     Serial.println("ID: " + String(id) + ", Name: " + studentName);
     
+
+
+    String range = sheetName + "!A:E";
+
     // Append values to the spreadsheet
-    bool success = GSheet.values.append(&response, spreadsheetId, "Sheet1!A:E", &valueRange);
+    bool success = GSheet.values.append(&response, spreadsheetId, range.c_str(), &valueRange);
     
     if (success) {
         Serial.println("✓ Attendance logged successfully");
